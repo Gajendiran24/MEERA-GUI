@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AiOutlineLogout } from "react-icons/ai";
 import { FaUserNurse } from "react-icons/fa";
 import FileUploader from "../Shared/FileUploader"; // Make sure this exists
+import ChatBox from "../Chat/ChatBox";
 
 const mockRequests = [
     {
@@ -51,6 +52,10 @@ const CaretakerDashboard = () => {
     const [activeTab, setActiveTab] = useState("requests");
     const [uploadedUrl, setUploadedUrl] = useState("");
 
+    const user = JSON.parse(localStorage.getItem("meera_user"));
+
+    const [selectedReceiver, setSelectedReceiver] = useState(null);
+
     useEffect(() => {
         const updateDateTime = () => {
             const now = new Date();
@@ -90,7 +95,7 @@ const CaretakerDashboard = () => {
                     transition={{ duration: 0.5 }}
                     className="sticky top-[56px] w-64 bg-[#1E293B] text-white h-[calc(100vh-56px)] shadow-lg p-4 space-y-4"
                 >
-                    {["requests", "schedule", "reports"].map((tab) => (
+                    {["requests", "schedule", "reports", "chat"].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
@@ -102,6 +107,7 @@ const CaretakerDashboard = () => {
                             {tab === "requests" && "📥 Requests"}
                             {tab === "schedule" && "📅 Schedule"}
                             {tab === "reports" && "📤 Upload Reports"}
+                            {tab === "chat" && "💬 Chat"}
                         </button>
                     ))}
                 </motion.div>
@@ -198,6 +204,19 @@ const CaretakerDashboard = () => {
                                     </a>
                                 </div>
                             )}
+                        </motion.div>
+                    )}
+
+                    {/* chat upload Tab */}
+                    {activeTab === "chat" && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="bg-white p-6 rounded-xl shadow-lg"
+                        >
+                            <h2 className="text-xl font-semibold mb-4 text-gray-800">💬 Chat with Doctor / User</h2>
+                            <ChatBox senderId={user?._id} />
                         </motion.div>
                     )}
                 </motion.div>

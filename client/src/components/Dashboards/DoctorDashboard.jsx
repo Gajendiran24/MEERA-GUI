@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { AiOutlineLogout } from "react-icons/ai";
 import { FaStethoscope } from "react-icons/fa";
+import ChatBox from "../Chat/ChatBox";
 
 const DoctorDashboard = () => {
     const [dateTime, setDateTime] = useState("");
     const [activeTab, setActiveTab] = useState("patients");
+
+    const doctor = JSON.parse(localStorage.getItem("meera_user"));
+    const [selectedUserId, setSelectedUserId] = useState(null);
 
     useEffect(() => {
         const updateDateTime = () => {
@@ -180,44 +184,22 @@ const DoctorDashboard = () => {
                         >
                             <h2 className="text-xl font-semibold mb-4 text-gray-800">💬 Chat with Patient</h2>
 
-                            {/* Chat Area */}
-                            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-                                {/* Patient message */}
-                                <div className="bg-blue-100 text-blue-800 p-3 rounded-lg w-fit max-w-[75%]">
-                                    Hello Doctor, I'm feeling better today.
-                                </div>
-
-                                {/* Doctor message */}
-                                <div className="bg-green-100 text-green-800 p-3 rounded-lg w-fit max-w-[75%] self-end">
-                                    That’s great! Continue the current medication.
-                                </div>
-
-                                {/* Patient message */}
-                                <div className="bg-blue-100 text-blue-800 p-3 rounded-lg w-fit max-w-[75%]">
-                                    Should I take another BP reading today?
-                                </div>
-                            </div>
-
-                            {/* Message Input */}
-                            <form
-                                className="mt-4 flex items-center gap-2"
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    alert("Message sent (UI only)");
-                                }}
+                            <select
+                                value={selectedUserId || ""}
+                                onChange={(e) => setSelectedUserId(e.target.value)}
+                                className="mb-4 border px-3 py-2 rounded"
                             >
-                                <input
-                                    type="text"
-                                    placeholder="Type your message..."
-                                    className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none"
-                                />
-                                <button
-                                    type="submit"
-                                    className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
-                                >
-                                    Send
-                                </button>
-                            </form>
+                                <option value="">-- Select Patient --</option>
+                                <option value="user1_id">Sita Rao</option>
+                                <option value="user2_id">Kiran Patel</option>
+                                <option value="user3_id">Lakshmi Iyer</option>
+                            </select>
+
+                            {selectedUserId ? (
+                                <ChatBox senderId={doctor._id} receiverId={selectedUserId} />
+                            ) : (
+                                <p className="text-gray-600">Please select a patient to start chatting.</p>
+                            )}
                         </motion.div>
                     )}
                 </motion.div>

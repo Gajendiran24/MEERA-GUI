@@ -21,6 +21,7 @@ const UserDashboard = () => {
     const [listening, setListening] = useState(false);
     const [doNotDisturb, setDoNotDisturb] = useState(false);
     const [suggestion, setSuggestion] = useState("");
+    const [targetId, setTargetId] = useState(null);
 
     const [vitals, setVitals] = useState({
         heartRate: 105,
@@ -31,7 +32,9 @@ const UserDashboard = () => {
     const [vitalAlerts, setVitalAlerts] = useState([]);
 
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem("meera_user"));
+
+    const user = JSON.parse(localStorage.getItem("meera_user")) || {};
+
     const isOffline = useOffline();
 
     useIdleLogout();
@@ -232,7 +235,7 @@ const UserDashboard = () => {
                                 {tab === "pairing" && "👥 Caretaker Pairing"}
                                 {tab === "schedule" && "📅 Schedule"}
                                 {tab === "alerts" && "🔔 Alerts"}
-                                {tab === "chat" && "💬 Chart"}
+                                {tab === "chat" && "💬 Chat"}
                             </button>
                         ))}
                     </div>
@@ -271,15 +274,30 @@ const UserDashboard = () => {
                         )}
                         {activeTab === "chat" && (
                             <>
-                                <h2 className="text-xl font-semibold mb-4 text-gray-800">💬 Chat with Care Team</h2>
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="border rounded-xl p-4 bg-gray-100 shadow-inner"
-                                >
-                                    <ChatBox senderId={user._id} receiverId={"65d6d1abf16e"} />
-                                </motion.div>
+                                <h2 className="text-xl font-semibold mb-4 text-gray-800">💬 Chat</h2>
+
+                                {/* Target Selector Buttons (mock) */}
+                                <div className="flex gap-4 mb-4">
+                                    <button
+                                        onClick={() => setTargetId("doctor123")}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                                    >
+                                        Chat with Doctor
+                                    </button>
+                                    <button
+                                        onClick={() => setTargetId("caretaker456")}
+                                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                                    >
+                                        Chat with Caretaker
+                                    </button>
+                                </div>
+
+                                {/* Chat Box Component */}
+                                {targetId ? (
+                                    <ChatBox senderId={user._id} receiverId={targetId} />
+                                ) : (
+                                    <p className="text-gray-600">Please select a person to chat with.</p>
+                                )}
                             </>
                         )}
                     </motion.div>
