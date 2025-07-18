@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
-import { FaBell, FaUserCircle, FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
+import { FaUserCircle, FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { AiOutlineLogout } from "react-icons/ai";
 import { motion } from "framer-motion";
 import EmergencyModal from "../Modals/EmergencyModal";
 import FeelingUnwellModal from "../Modals/FeelingUnWellModal";
 import HappyTimeTabs from "../HappyTime/HappyTimeTabs";
 import MemoryBox from "../MemoryBox/MemoryBox";
-import PairingGrid from "../User/PairingGrid"; // ✅ new
+import PairingGrid from "../User/PairingGrid";
+import useIdleLogout from "../../hooks/useIdleLogout";
+import { useNavigate } from "react-router-dom";
+import useOffline from "../../hooks/useOffline";
+import useVoiceCommands from "../../hooks/useVoiceCommands";
+import ChatBox from "../Chat/ChatBox";
 
 const UserDashboard = () => {
     const [dateTime, setDateTime] = useState("");
@@ -14,6 +19,22 @@ const UserDashboard = () => {
     const [showUnwellModal, setShowUnwellModal] = useState(false);
     const [activeTab, setActiveTab] = useState("happy");
     const [listening, setListening] = useState(false);
+    const [doNotDisturb, setDoNotDisturb] = useState(false);
+    const [suggestion, setSuggestion] = useState("");
+
+    const [vitals, setVitals] = useState({
+        heartRate: 105,
+        bloodPressure: "150/95",
+        temperature: 101,
+    });
+
+    const [vitalAlerts, setVitalAlerts] = useState([]);
+
+    const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem("meera_user"));
+    const isOffline = useOffline();
+
+    useIdleLogout();
 
     useEffect(() => {
         const updateDateTime = () => {
@@ -22,14 +43,83 @@ const UserDashboard = () => {
             const date = now.toLocaleDateString();
             const time = now.toLocaleTimeString();
             setDateTime(`${day} | ${date} | ${time}`);
+
+            localStorage.setItem("emergency_contact", JSON.stringify({
+                name: "Dr. Meera Sharma",
+                phone: "+91-9876543210"
+            }));
         };
         updateDateTime();
         const interval = setInterval(updateDateTime, 1000);
         return () => clearInterval(interval);
     }, []);
 
+    const handleLogout = () => {
+        localStorage.removeItem("meera_token");
+        localStorage.removeItem("meera_user");
+        localStorage.removeItem("isTrustedDevice");
+        localStorage.removeItem("trustedEmail");
+        navigate("/login");
+    };
+
+    useVoiceCommands({
+        listening,
+        onCommand: (cmd) => {
+            if (cmd === "play-bhajans") {
+                alert("🎵 Playing bhajans (demo)");
+            } else if (cmd === "open-memory") {
+                setActiveTab("memory");
+            } else if (cmd === "open-caretaker") {
+                setActiveTab("pairing");
+            }
+        },
+    });
+
+    const suggestions = [
+        "Take deep breaths and relax 🌬️",
+        "Drink some water 💧",
+        "Stretch your arms and legs 🧘‍♀️",
+        "Close your eyes for 30 seconds 🧘",
+        "Smile — it's good for your mood 😊"
+    ];
+
+    const handleAIClick = () => {
+        const random = suggestions[Math.floor(Math.random() * suggestions.length)];
+        setSuggestion(random);
+    };
+
+    useEffect(() => {
+        const alerts = [];
+
+        // Check if heart rate is too high
+        if (vitals.heartRate > 100) {
+            alerts.push("🚨 High Heart Rate: " + vitals.heartRate + " bpm");
+        }
+
+        // Check if blood pressure is too high
+        const [systolic, diastolic] = vitals.bloodPressure.split("/").map(Number);
+        if (systolic > 140 || diastolic > 90) {
+            alerts.push("⚠️ High Blood Pressure: " + vitals.bloodPressure);
+        }
+
+        // Check if user has fever
+        if (vitals.temperature > 100.4) {
+            alerts.push("🌡️ Fever Detected: " + vitals.temperature + "°F");
+        }
+
+        // Save to state
+        setVitalAlerts(alerts);
+    }, [vitals]);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 overflow-hidden relative">
+
+            {isOffline && (
+                <div className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 z-[100]">
+                    You’re currently offline. Emergency contact available.
+                </div>
+            )}
+
             {/* Top Navbar */}
             <motion.div
                 initial={{ y: -50, opacity: 0 }}
@@ -40,24 +130,42 @@ const UserDashboard = () => {
                 <div className="text-xl font-bold text-purple-300">MEERA 🏠</div>
                 <div className="flex items-center gap-4">
                     <button
+                        className="bg-indigo-500 text-white px-3 py-1 rounded shadow hover:bg-indigo-600 transition cursor-pointer"
+                        onClick={handleAIClick}
+                    >
+                        💡 Suggestion
+                    </button>
+
+                    <button
                         className="bg-red-600 text-white px-3 py-1 rounded shadow hover:bg-red-700 transition"
                         onClick={() => setShowEmergencyModal(true)}
                     >
                         EMERGENCY
                     </button>
                     <div className="text-sm text-gray-300">{dateTime}</div>
+
+                    {/* Mic Button */}
+                    {!doNotDisturb && (
+                        <button
+                            onClick={() => setListening(!listening)}
+                            className={`text-2xl transition transform hover:scale-110 cursor-pointer ${listening ? "text-green-400 animate-pulse" : "text-white"}`}
+                            title="Toggle Voice Assistant"
+                        >
+                            {listening ? <FaMicrophone /> : <FaMicrophoneSlash />}
+                        </button>
+                    )}
+
                     <button
-                        onClick={() => {
-                            setListening(!listening);
-                            console.log("🎙️ Voice Assistant Toggled:", !listening);
-                        }}
-                        className={`text-2xl transition transform hover:scale-110 cursor-pointer ${listening ? "text-green-400 animate-pulse" : "text-white"}`}
-                        title="Toggle Voice Assistant"
+                        onClick={() => setDoNotDisturb(!doNotDisturb)}
+                        className={`text-sm px-3 py-1 rounded-full font-medium transition cursor-pointer ${doNotDisturb ? "bg-red-600 text-white" : "bg-green-500 text-white"}`}
                     >
-                        {listening ? <FaMicrophone /> : <FaMicrophoneSlash />}
+                        {doNotDisturb ? "DND: ON" : "DND: OFF"}
                     </button>
                     <FaUserCircle className="text-2xl text-white" />
-                    <AiOutlineLogout className="text-2xl text-white cursor-pointer hover:text-red-400" />
+                    <AiOutlineLogout
+                        onClick={handleLogout}
+                        className="text-2xl text-white cursor-pointer hover:text-red-400"
+                    />
                 </div>
             </motion.div>
 
@@ -110,7 +218,7 @@ const UserDashboard = () => {
                 <div className="flex-1 p-6 space-y-4">
                     {/* Tabs */}
                     <div className="flex gap-4 mb-4">
-                        {["happy", "memory", "pairing", "schedule", "alerts"].map((tab) => (
+                        {["happy", "memory", "pairing", "schedule", "alerts", "chat"].map((tab) => (
                             <button
                                 key={tab}
                                 className={`px-4 py-2 rounded-lg font-semibold capitalize transition cursor-pointer ${activeTab === tab
@@ -124,6 +232,7 @@ const UserDashboard = () => {
                                 {tab === "pairing" && "👥 Caretaker Pairing"}
                                 {tab === "schedule" && "📅 Schedule"}
                                 {tab === "alerts" && "🔔 Alerts"}
+                                {tab === "chat" && "💬 Chart"}
                             </button>
                         ))}
                     </div>
@@ -160,6 +269,19 @@ const UserDashboard = () => {
                         {activeTab === "alerts" && (
                             <p className="text-gray-600">🔔 No alerts at the moment. Stay tuned!</p>
                         )}
+                        {activeTab === "chat" && (
+                            <>
+                                <h2 className="text-xl font-semibold mb-4 text-gray-800">💬 Chat with Care Team</h2>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="border rounded-xl p-4 bg-gray-100 shadow-inner"
+                                >
+                                    <ChatBox senderId={user._id} receiverId={"65d6d1abf16e"} />
+                                </motion.div>
+                            </>
+                        )}
                     </motion.div>
                 </div>
 
@@ -168,10 +290,18 @@ const UserDashboard = () => {
                     initial={{ x: 50, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.6 }}
-                    className="sticky top-[56px] w-64 bg-yellow-100 h-[calc(100vh-56px)] p-4 border-l border-yellow-300 shadow-inner"
+                    className="sticky top-[56px] w-70 bg-yellow-100 h-[calc(100vh-56px)] p-4 border-l border-yellow-300 shadow-inner"
                 >
                     <h3 className="text-lg font-semibold text-yellow-900 mb-3">🔔 Alerts</h3>
-                    <p className="text-yellow-800">No current alerts.</p>
+                    {vitalAlerts.length > 0 ? (
+                        <ul className="list-disc pl-4 space-y-1 text-yellow-900">
+                            {vitalAlerts.map((alert, idx) => (
+                                <li key={idx}>{alert}</li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-yellow-800">No current alerts.</p>
+                    )}
                 </motion.div>
             </div>
 
@@ -189,6 +319,18 @@ const UserDashboard = () => {
             >
                 😓 Feeling Unwell
             </motion.button>
+
+            {suggestion && (
+                <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="fixed bottom-24 right-6 bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-xl z-50"
+                >
+                    {suggestion}
+                </motion.div>
+            )}
         </div>
     );
 };

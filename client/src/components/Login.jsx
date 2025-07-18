@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -7,11 +7,23 @@ import { useTranslation } from "react-i18next";
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [trustedDevice, setTrustedDevice] = useState(false);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { t, i18n } = useTranslation();  // ✅ both translation & language switching
+    const { t, i18n } = useTranslation();
 
-    const handleLogin = async () => {
+    useEffect(() => {
+        const isTrusted = localStorage.getItem("isTrustedDevice");
+        const savedEmail = localStorage.getItem("trustedEmail");
+
+        if (isTrusted === "true" && savedEmail) {
+            setEmail(savedEmail);
+            setTrustedDevice(true);
+        }
+    }, []);
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
         if (!email || !password) return alert(t("enterEmailPassword"));
 
         try {
@@ -23,13 +35,26 @@ const Login = () => {
 
             const { token, user } = res.data;
 
-            // Save token & user to localStorage
             localStorage.setItem("meera_token", token);
             localStorage.setItem("meera_user", JSON.stringify(user));
 
+            // ✅ Store trusted info only if checked
+            if (trustedDevice) {
+                localStorage.setItem("isTrustedDevice", "true");
+                localStorage.setItem("trustedEmail", email);
+            } else {
+                localStorage.removeItem("isTrustedDevice");
+                localStorage.removeItem("trustedEmail");
+            }
+
             alert(t("loginSuccess"));
 
-            // Role-based redirect
+            // ✅ Clear states after login
+            setEmail("");
+            setPassword("");
+            setTrustedDevice(false);
+
+            // ✅ Role-based redirect
             if (user.role === "user") navigate("/dashboard/user");
             else if (user.role === "caretaker") navigate("/dashboard/caretaker");
             else if (user.role === "doctor") navigate("/dashboard/doctor");
@@ -75,31 +100,43 @@ const Login = () => {
                     {t("loginTitle")}
                 </h2>
 
-                <input
-                    type="email"
-                    placeholder={t("email")}
-                    className="w-full mb-4 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
+                <form onSubmit={handleLogin} className="space-y-4">
+                    <input
+                        type="email"
+                        placeholder={t("email")}
+                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
 
-                <input
-                    type="password"
-                    placeholder={t("password")}
-                    className="w-full mb-4 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
+                    <input
+                        type="password"
+                        placeholder={t("password")}
+                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
 
-                <button
-                    className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition"
-                    onClick={handleLogin}
-                    disabled={loading}
-                >
-                    {loading ? t("loggingIn") : t("login")}
-                </button>
+                    {/* ✅ Trusted Device Checkbox */}
+                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                        <input
+                            type="checkbox"
+                            checked={trustedDevice}
+                            onChange={(e) => setTrustedDevice(e.target.checked)}
+                        />
+                        {t("trustedDevice") || "Remember this device (Trusted)"}
+                    </label>
+
+                    <button
+                        type="submit"
+                        className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition"
+                        disabled={loading}
+                    >
+                        {loading ? t("loggingIn") : t("login")}
+                    </button>
+                </form>
 
                 <p className="text-center text-md text-gray-600 mt-6">
                     {t("Donthaveanaccount")}{" "}
