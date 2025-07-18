@@ -24,6 +24,9 @@ const UserDashboard = () => {
     const [suggestion, setSuggestion] = useState("");
     const [targetId, setTargetId] = useState(null);
 
+    const [batteryLevel, setBatteryLevel] = useState(null);
+    const [charging, setCharging] = useState(null);
+
     const [vitals, setVitals] = useState({
         heartRate: 105,
         bloodPressure: "150/95",
@@ -115,6 +118,20 @@ const UserDashboard = () => {
         setVitalAlerts(alerts);
     }, [vitals]);
 
+    useEffect(() => {
+        navigator.getBattery().then((battery) => {
+            const updateBatteryInfo = () => {
+                setBatteryLevel(Math.round(battery.level * 100));
+                setCharging(battery.charging);
+            };
+
+            updateBatteryInfo();
+
+            battery.addEventListener("levelchange", updateBatteryInfo);
+            battery.addEventListener("chargingchange", updateBatteryInfo);
+        });
+    }, []);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 overflow-hidden relative">
 
@@ -132,7 +149,7 @@ const UserDashboard = () => {
                 className="sticky top-0 z-50 bg-[#030b1d] text-white flex items-center justify-between px-6 py-3 shadow-md"
             >
                 <div className="text-xl font-bold text-purple-300">
-                    <img 
+                    <img
                         className="h-14"
                         src={Logo} alt=""
                     />
@@ -171,6 +188,13 @@ const UserDashboard = () => {
                         {doNotDisturb ? "DND: ON" : "DND: OFF"}
                     </button>
                     <FaUserCircle className="text-2xl text-white" />
+                    <div className="flex items-center space-x-2">
+                        <div className="flex items-center">
+                            <h2 className="text-xl font-semibold">🔋</h2>
+                            <p>{batteryLevel !== null ? `${batteryLevel}%` : "Loading..."}</p>
+                        </div>
+                        <p>Status: {charging === null ? "Detecting..." : charging ? "Charging⚡" : "Not Charging🔋"}</p>
+                    </div>
                     <AiOutlineLogout
                         onClick={handleLogout}
                         className="text-2xl text-white cursor-pointer hover:text-red-400"
