@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import useOffline from "../../hooks/useOffline";
 import useVoiceCommands from "../../hooks/useVoiceCommands";
 import ChatBox from "../Chat/ChatBox";
+import Logo from "../../Images/Logo12.png"
 
 const UserDashboard = () => {
     const [dateTime, setDateTime] = useState("");
@@ -128,9 +129,14 @@ const UserDashboard = () => {
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="sticky top-0 z-50 bg-[#101828] text-white flex items-center justify-between px-6 py-3 shadow-md"
+                className="sticky top-0 z-50 bg-[#030b1d] text-white flex items-center justify-between px-6 py-3 shadow-md"
             >
-                <div className="text-xl font-bold text-purple-300">MEERA 🏠</div>
+                <div className="text-xl font-bold text-purple-300">
+                    <img 
+                        className="h-14"
+                        src={Logo} alt=""
+                    />
+                </div>
                 <div className="flex items-center gap-4">
                     <button
                         className="bg-indigo-500 text-white px-3 py-1 rounded shadow hover:bg-indigo-600 transition cursor-pointer"

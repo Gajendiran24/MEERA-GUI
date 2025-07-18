@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AiOutlineLogout } from "react-icons/ai";
 import { FaStethoscope } from "react-icons/fa";
 import ChatBox from "../Chat/ChatBox";
+import Logo from "../../Images/Logo12.png"
 
 const DoctorDashboard = () => {
     const [dateTime, setDateTime] = useState("");
@@ -31,10 +32,13 @@ const DoctorDashboard = () => {
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="sticky top-0 z-50 bg-[#101828] text-white flex items-center justify-between px-6 py-3 shadow-md"
+                className="sticky top-0 z-50 bg-[#030b1d] text-white flex items-center justify-between px-6 py-3 shadow-md"
             >
-                <div className="text-xl font-bold text-cyan-300 flex items-center gap-2">
-                    <FaStethoscope /> Doctor Dashboard
+                <div className="text-xl font-bold text-purple-300">
+                    <img
+                        className="h-14"
+                        src={Logo} alt=""
+                    />
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-sm text-gray-300">{dateTime}</div>
