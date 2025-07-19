@@ -2,18 +2,19 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import http from "http"; // ✅ For creating HTTP server
-import { Server } from "socket.io"; // ✅ Socket.io
+import http from "http";
+import { Server } from "socket.io";
 import authRoutes from "./routes/authRoutes.js";
 import memoryRoutes from "./routes/memoryRoutes.js";
 
 dotenv.config();
 
 const app = express();
-const server = http.createServer(app); // ✅ Wrap Express in HTTP server
+const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: "*", // ✅ Adjust as needed for production
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -27,8 +28,6 @@ io.on("connection", (socket) => {
 
   socket.on("sendMessage", (message) => {
     const roomId = [message.senderId, message.receiverId].sort().join("_");
-
-    // ✅ Broadcast to everyone in room (including receiver)
     io.to(roomId).emit("receive-message", message);
   });
 
@@ -41,7 +40,7 @@ io.on("connection", (socket) => {
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads")); // For file access
+app.use("/uploads", express.static("uploads"));
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -56,7 +55,3 @@ mongoose.connect(process.env.MONGO_URI)
     );
   })
   .catch((err) => console.error("MongoDB connection error:", err));
-
-import { io } from "socket.io-client";
-const socket = io("http://localhost:5000"); // ✅ match backend port
-export default socket;
