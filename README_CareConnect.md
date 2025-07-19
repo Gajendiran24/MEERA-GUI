@@ -1,78 +1,92 @@
 
 # 💙 CareConnect
 
-CareConnect is a full-stack healthcare web application built with the MERN stack. It connects **Users (Patients)**, **Caretakers**, and **Doctors** in one unified platform, featuring dashboards per role, real-time chat, AI support, emergency features, and secure session handling.
-
----
+**CareConnect** is a full-stack healthcare web application designed to connect **Users**, **Caretakers**, and **Doctors** in a seamless, voice-assisted platform with real-time chat, emergency response features, and multilingual support.
 
 ## 🚀 Features
 
-### 👤 User
-- Multi-step registration with voice & emergency preferences
-- User Dashboard with:
-  - 🎉 Happy Time (Activities, Music, Books, etc.)
-  - 🧠 Memory Box (Record audio memories & shareable links)
-  - 👥 Caretaker Pairing Grid
-  - 😓 Emergency & Feeling Unwell modals
-  - 🔊 Voice Assistant using Web Speech API
-  - 🔔 Alerts (based on vitals)
-  - 💬 Real-time Chat with Doctor or Caretaker
+### 🔐 Authentication & Registration
+- Role-based registration for **Users**, **Doctors**, and **Caretakers**
+- Secure JWT-based authentication
+- Dynamic registration steps per role
+- PDF upload for Doctors & Caretakers
 
-### 👩‍⚕️ Doctor
-- View Patient List
-- Upload Vitals / Send Care Plans
-- Real-time Chat with Users
-- Chat UI per patient (select & message)
+### 🧑‍⚕️ Role Dashboards
+- **User Dashboard**: Emergency button, Happy Time, Memory Box, Caretaker pairing, chat
+- **Caretaker Dashboard**: Assigned users, chat, profile
+- **Doctor Dashboard**: Patient list, care plan, real-time chat, vitals upload
 
-### 🧑‍🦽 Caretaker
-- View & Accept Requests
-- Daily Schedule
-- Upload Reports
-- Real-time Chat with Users
+### 🎙️ Voice Command System
+- Integrated using **Web Speech API**
+- Voice-activated navigation: "open caretaker", "play bhajans", etc.
+- DND (Do Not Disturb) toggle to disable voice UI
 
-### 🧠 AI + Voice Features
-- Voice Suggestions (e.g., “Take deep breaths.”)
-- Voice Command Support (“Meera, play bhajans”)
+### 💬 Real-Time Chat
+- Socket.io-powered chat between:
+  - User ↔ Doctor
+  - User ↔ Caretaker
+- Sender/receiver logic with IDs
 
-### 🔐 Privacy & Security
-- Trusted Device Checkbox (localStorage)
-- Auto Logout after 5 minutes of idle
-- DND toggle disables mic/camera
-- Offline Mode with localStorage fallback
+### 🧠 AI Suggestion Engine
+- Generates health tips/suggestions based on user's current mood or vitals (dummy logic or AI-ready)
+
+### 📁 Memory Box
+- Users can upload audio memories
+- Audio saved to Cloudinary with title, date
+- Shareable link generation
+
+### 🧘‍♀️ Happy Time
+- Embedded bhajans/videos to uplift user mood
+- Triggered by button or voice
+
+### 📊 Vitals Alert Logic
+- Alerts user/doctor if any vital sign is abnormal (mock logic setup)
+- Doctor uploads vitals via form
+
+### 🌐 Internationalization (i18n)
+- Full support for **English** and **Telugu**
+- Dynamic translations for forms, labels, buttons, steps
 
 ---
 
-## 🛠️ Tech Stack
+## 🧱 Tech Stack
 
-- **Frontend**: React.js + Tailwind CSS + Framer Motion + Socket.io-client + Web Speech API
-- **Backend**: Node.js + Express.js + MongoDB + Socket.io + Cloudinary (for file uploads)
-- **Database**: MongoDB Atlas
-- **Auth**: JWT Token-based Auth with role-level permissions
+| Layer        | Technologies |
+|--------------|--------------|
+| Frontend     | React, TailwindCSS, React Router, i18next, Axios, Framer Motion |
+| Backend      | Node.js, Express.js, MongoDB, Mongoose, JWT, Bcrypt, Socket.io |
+| File Storage | Cloudinary |
+| Chat         | Socket.io |
+| Voice        | Web Speech API |
+| Translations | i18next |
 
 ---
 
-## 📁 Project Structure
+## 📦 Project Structure
 
 ```
-client/
-  └── src/
-      ├── components/
-      ├── pages/
-      ├── hooks/
-      ├── Chat/ChatBox.jsx
-      └── App.jsx
-
-server/
-  ├── routes/
-  ├── controllers/
-  ├── models/
-  ├── socket/
-  └── index.js
+careconnect/
+│
+├── client/              # React Frontend
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── i18n/        # i18next config
+│   │   └── App.jsx
+│
+├── server/              # Express Backend
+│   ├── models/
+│   ├── routes/
+│   ├── controllers/
+│   ├── utils/
+│   └── server.js
+│
+└── README.md
 ```
 
 ---
 
-## 🧪 Local Setup
+## ⚙️ Setup Instructions
 
 ### 1. Clone the Repository
 
@@ -81,26 +95,21 @@ git clone https://github.com/your-username/careconnect.git
 cd careconnect
 ```
 
-### 2. Start the Backend
+### 2. Setup Backend
 
 ```bash
 cd server
 npm install
-npm run dev
+# Create `.env` file with:
+# MONGO_URI=
+# JWT_SECRET=
+# CLOUDINARY_CLOUD_NAME=
+# CLOUDINARY_API_KEY=
+# CLOUDINARY_API_SECRET=
+node server.js
 ```
 
-Make sure to add your `.env` file with:
-
-```env
-PORT=5000
-MONGO_URI=mongodb+srv://your-db
-JWT_SECRET=yourSecret
-CLOUDINARY_CLOUD_NAME=xxx
-CLOUDINARY_API_KEY=xxx
-CLOUDINARY_API_SECRET=xxx
-```
-
-### 3. Start the Frontend
+### 3. Setup Frontend
 
 ```bash
 cd client
@@ -110,18 +119,31 @@ npm run dev
 
 ---
 
-## 🔄 Socket.io Events Used
+## 🧪 Test Accounts
 
-- `joinRoom`, `leaveRoom`
-- `sendMessage`
-- `receive-message`
+| Role      | Email                  | Password |
+|-----------|------------------------|----------|
+| User      | user@example.com       | 123456   |
+| Doctor    | doctor@example.com     | 123456   |
+| Caretaker | caretaker@example.com  | 123456   |
+
+---
+
+## 📌 Notes
+
+- Cloudinary is used for all file uploads (audio, PDF).
+- i18n is fully dynamic and switchable.
+- All dashboards are protected routes.
+- Voice commands work best on Chrome.
 
 ---
 
-## 📦 Deployment Instructions
+## 🤝 Author
 
-You can deploy:
-- Frontend → Vercel / Netlify
-- Backend → Render / Railway / Cyclic / Fly.io
+**Roop Teja**  
+[LinkedIn](https://www.linkedin.com/in/roop-teja-g-796013299/)  
+Email: roopteja112@gmail.com
 
 ---
+
+## 📄 License
